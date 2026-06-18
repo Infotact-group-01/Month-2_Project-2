@@ -1,0 +1,105 @@
+version: '3.9'
+
+# ─── Security Scanning Stack (Local) ─────────────────────────────────────────
+# Run all security scanners locally against the built image
+# Usage: docker-compose -f docker-compose.security.yml up --abort-on-container-exit
+#
+# This mirrors the GitHub Actions pipeline stages for local dev use.
+
+services:
+
+  # ── Build the image to scan ─────────────────────────────────────────────────
+  build-image:
+    build:
+      context: ./app
+      dockerfile: Dockerfile
+      target: production
+    image: ecommerce-api:scan-target
+    container_name: ecommerce-build
+    entrypoint: ["echo", "Image built successfully"]
+
+  # ── SCA: Trivy filesystem scan (package.json dependencies) ──────────────────
+  trivy-sca:
+    image: aquasec/trivy:latest
+    container_name: trivy-sca
+    depends_on:
+      - build-image
+    volumes:
+      - ./app:/workspace:ro
+      - ./reports:/reports
+      - trivy-cache:/root/.cache/trivy
+    command: >
+      fs /workspace
+      --exit-code 0
+      --severity HIGH,CRITICAL
+      --format template
+      --template "@contrib/html.tpl"
+      --output /reports/sca-report.html
+      --ignore-unfixed
+    networks:
+      - security-net
+
+  # ── Container Scan: Trivy image scan ────────────────────────────────────────
+  trivy-image:
+    image: aquasec/trivy:latest
+    container_name: trivy-image
+    depends_on:
+      - build-image
+    volumes:
+      - ./reports:/reports
+      - trivy-cache:/root/.cache/trivy
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    command: >
+      image ecommerce-api:scan-target
+      --exit-code 0
+      --severity HIGH,CRITICAL
+      --format template
+      --template "@contrib/html.tpl"
+      --output /reports/container-report.html
+    networks:
+      - security-net
+
+  # ── IaC Scan: Checkov against Terraform ─────────────────────────────────────
+  checkov:
+    image: bridgecrew/checkov:latest
+    container_name: checkov-scan
+    volumes:
+      - ./infrastructure:/infrastructure:ro
+      - ./reports:/reports
+    command: >
+      -d /infrastructure/terraform
+      --output cli
+      --output json
+      --output-file-path /reports/
+      --framework terraform
+      --compact
+    networks:
+      - security-net
+
+  # ── SAST: Semgrep scan ───────────────────────────────────────────────────────
+  semgrep:
+    image: returntocorp/semgrep:latest
+    container_name: semgrep-sast
+    volumes:
+      - ./app/src:/src:ro
+      - ./reports:/reports
+    command: >
+      semgrep scan
+      --config=p/owasp-top-ten
+      --config=p/nodejs
+      --config=p/jwt
+      --config=p/secrets
+      --json
+      --output /reports/sast-report.json
+      /src
+    networks:
+      - security-net
+
+volumes:
+  trivy-cache:
+    name: trivy-cache
+
+networks:
+  security-net:
+    driver: bridge
+    name: security-scan-network
