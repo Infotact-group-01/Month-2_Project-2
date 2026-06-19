@@ -11,7 +11,7 @@ RUN apk add --no-cache python3 make g++
 COPY package*.json ./
 
 # Install ALL dependencies (including devDeps for build)
-RUN npm ci --only=production && \
+RUN npm ci --omit=dev && \
     npm cache clean --force
 
 # ─── Stage 2: Security Audit ─────────────────────────────────────────────────

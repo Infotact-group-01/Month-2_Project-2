@@ -1,4 +1,4 @@
-version: '3.9'
+
 
 # ─── E-Commerce DevSecOps — Local Development Stack ──────────────────────────
 # Usage: docker-compose up -d
@@ -46,10 +46,16 @@ services:
     ports:
       - "80:80"
     volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/nginx.conf/default.conf:/etc/nginx/nginx.conf:ro
     depends_on:
       api:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD","curl","-f","http://localhost:80/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 5s
     networks:
       - ecommerce-net
 
