@@ -1,0 +1,75 @@
+name: Security Gate Failure Demo
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  vulnerable-fixtures:
+    name: Expected Failure on Vulnerable Fixtures
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Prepare reports
+        run: mkdir -p reports
+
+      - name: Checkov should detect vulnerable Terraform
+        id: checkov
+        continue-on-error: true
+        run: |
+          docker run --rm \
+            -v "${{ github.workspace }}:/workspace" \
+            bridgecrew/checkov:latest \
+            -d /workspace/security-fixtures/vulnerable/terraform \
+            --framework terraform \
+            --quiet
+
+      - name: Trivy should detect vulnerable dependencies
+        id: trivy
+        continue-on-error: true
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          scan-type: fs
+          scan-ref: security-fixtures/vulnerable/app
+          severity: HIGH,CRITICAL
+          ignore-unfixed: false
+          exit-code: "1"
+          format: table
+
+      - name: Semgrep should detect insecure code
+        id: semgrep
+        continue-on-error: true
+        run: |
+          docker run --rm \
+            -v "${{ github.workspace }}:/src" \
+            semgrep/semgrep:latest \
+            semgrep scan \
+              --config=p/owasp-top-ten \
+              --config=p/nodejs \
+              --error \
+              /src/security-fixtures/vulnerable/app
+
+      - name: Assert the failure gate works
+        run: |
+          if [ "${{ steps.checkov.outcome }}" = "success" ]; then
+            echo "Checkov did not block the vulnerable Terraform fixture."
+            exit 1
+          fi
+
+          if [ "${{ steps.trivy.outcome }}" = "success" ]; then
+            echo "Trivy did not block the vulnerable dependency fixture."
+            exit 1
+          fi
+
+          if [ "${{ steps.semgrep.outcome }}" = "success" ]; then
+            echo "Semgrep did not block the vulnerable code fixture."
+            exit 1
+          fi
+
+          echo "All vulnerable fixtures were detected. Failing intentionally to demonstrate strict gate enforcement."
+          exit 1

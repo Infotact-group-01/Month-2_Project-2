@@ -1,0 +1,8 @@
+framework:
+  - terraform
+compact: true
+quiet: true
+download-external-modules: false
+skip-check:
+  - CKV_AWS_260
+  - CKV2_AWS_62

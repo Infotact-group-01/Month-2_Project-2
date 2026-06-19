@@ -6,10 +6,11 @@
   "scripts": {
     "start": "node src/server.js",
     "dev": "nodemon src/server.js",
-    "test": "jest --coverage --forceExit",
-    "test:ci": "jest --coverage --ci --forceExit --reporters=default --reporters=jest-junit",
-    "lint": "eslint src/ --ext .js",
-    "lint:fix": "eslint src/ --ext .js --fix"
+    "test": "jest --coverage --runInBand --forceExit",
+    "test:ci": "jest --coverage --ci --runInBand --forceExit --reporters=default --reporters=jest-junit",
+    "lint": "eslint src tests --ext .js",
+    "lint:fix": "eslint src tests --ext .js --fix",
+    "audit:ci": "npm audit --audit-level=high"
   },
   "keywords": ["ecommerce", "devsecops", "security", "pipeline"],
   "author": "DevSecOps Intern",
@@ -26,9 +27,7 @@
     "jsonwebtoken": "9.0.0",
     "morgan": "1.10.0",
     "uuid": "9.0.0",
-    "winston": "3.8.2",
-    "lodash": "4.17.15",
-    "axios": "1.4.0"
+    "winston": "3.8.2"
   },
   "devDependencies": {
     "eslint": "8.42.0",

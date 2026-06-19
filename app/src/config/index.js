@@ -2,6 +2,16 @@
 
 require('dotenv').config();
 
+const isProduction = process.env.NODE_ENV === 'production';
+const fallbackJwtSecret = 'local-devsecops-demo-secret-change-before-production';
+const configuredJwtSecret = process.env.JWT_SECRET || fallbackJwtSecret;
+
+if (isProduction && (!process.env.JWT_SECRET || process.env.JWT_SECRET.length < 32)) {
+  throw new Error('JWT_SECRET must be set to at least 32 characters in production.');
+}
+
+const corsOrigin = process.env.CORS_ORIGIN || (isProduction ? 'https://example.com' : '*');
+
 const config = {
   // Server configuration
   server: {
@@ -12,7 +22,7 @@ const config = {
 
   // JWT configuration
   jwt: {
-    secret: process.env.JWT_SECRET || 'devsecops-demo-secret-change-in-production',
+    secret: configuredJwtSecret,
     expiresIn: process.env.JWT_EXPIRES_IN || '24h',
     refreshExpiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '7d',
   },
@@ -35,9 +45,10 @@ const config = {
 
   // CORS configuration
   cors: {
-    origin: process.env.CORS_ORIGIN || '*',
+    origin: corsOrigin.includes(',') ? corsOrigin.split(',').map(origin => origin.trim()) : corsOrigin,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: corsOrigin !== '*',
   },
 
   // Logging

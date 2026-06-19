@@ -1,14 +1,7 @@
-version: '3.9'
-
-# ─── Security Scanning Stack (Local) ─────────────────────────────────────────
-# Run all security scanners locally against the built image
-# Usage: docker-compose -f docker-compose.security.yml up --abort-on-container-exit
-#
-# This mirrors the GitHub Actions pipeline stages for local dev use.
+# Security Scanning Stack (Local)
+# Usage: docker compose -f docker-compose.security.yml up --abort-on-container-exit --exit-code-from trivy-image
 
 services:
-
-  # ── Build the image to scan ─────────────────────────────────────────────────
   build-image:
     build:
       context: ./app
@@ -18,7 +11,6 @@ services:
     container_name: ecommerce-build
     entrypoint: ["echo", "Image built successfully"]
 
-  # ── SCA: Trivy filesystem scan (package.json dependencies) ──────────────────
   trivy-sca:
     image: aquasec/trivy:latest
     container_name: trivy-sca
@@ -30,16 +22,14 @@ services:
       - trivy-cache:/root/.cache/trivy
     command: >
       fs /workspace
-      --exit-code 0
+      --exit-code 1
       --severity HIGH,CRITICAL
-      --format template
-      --template "@contrib/html.tpl"
-      --output /reports/sca-report.html
+      --format sarif
+      --output /reports/trivy-fs.sarif
       --ignore-unfixed
     networks:
       - security-net
 
-  # ── Container Scan: Trivy image scan ────────────────────────────────────────
   trivy-image:
     image: aquasec/trivy:latest
     container_name: trivy-image
@@ -51,34 +41,34 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock:ro
     command: >
       image ecommerce-api:scan-target
-      --exit-code 0
+      --exit-code 1
       --severity HIGH,CRITICAL
-      --format template
-      --template "@contrib/html.tpl"
-      --output /reports/container-report.html
+      --format sarif
+      --output /reports/trivy-image.sarif
+      --ignore-unfixed
     networks:
       - security-net
 
-  # ── IaC Scan: Checkov against Terraform ─────────────────────────────────────
   checkov:
     image: bridgecrew/checkov:latest
     container_name: checkov-scan
     volumes:
       - ./infrastructure:/infrastructure:ro
+      - ./.checkov.yml:/.checkov.yml:ro
       - ./reports:/reports
     command: >
       -d /infrastructure/terraform
+      --config-file /.checkov.yml
       --output cli
-      --output json
-      --output-file-path /reports/
+      --output sarif
+      --output-file-path /reports/checkov
       --framework terraform
       --compact
     networks:
       - security-net
 
-  # ── SAST: Semgrep scan ───────────────────────────────────────────────────────
   semgrep:
-    image: returntocorp/semgrep:latest
+    image: semgrep/semgrep:latest
     container_name: semgrep-sast
     volumes:
       - ./app/src:/src:ro
@@ -89,9 +79,48 @@ services:
       --config=p/nodejs
       --config=p/jwt
       --config=p/secrets
-      --json
-      --output /reports/sast-report.json
+      --error
+      --sarif
+      --output /reports/semgrep.sarif
       /src
+    networks:
+      - security-net
+
+  api-under-test:
+    build:
+      context: ./app
+      dockerfile: Dockerfile
+      target: production
+    image: ecommerce-api:dast-target
+    container_name: ecommerce-api-dast
+    environment:
+      NODE_ENV: production
+      JWT_SECRET: local-dast-secret-change-before-production-12345
+      CORS_ORIGIN: http://localhost:3000
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+    networks:
+      - security-net
+
+  zap:
+    image: ghcr.io/zaproxy/zaproxy:stable
+    container_name: zap-dast
+    depends_on:
+      api-under-test:
+        condition: service_healthy
+    volumes:
+      - ./reports:/zap/wrk
+    command: >
+      zap-baseline.py
+      -t http://api-under-test:3000
+      -J zap-report.json
+      -r zap-report.html
+      -x zap-report.xml
+      -I
+      -m 5
     networks:
       - security-net
 

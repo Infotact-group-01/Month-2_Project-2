@@ -1,0 +1,5 @@
+app/node_modules/
+app/coverage/
+app/test-results/
+reports/
+security-fixtures/

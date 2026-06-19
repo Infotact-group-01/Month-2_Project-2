@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="jest tests" tests="26" failures="0" errors="0" time="2.117">
+  <testsuite name="Products Routes" errors="0" failures="0" skipped="0" timestamp="2026-06-19T06:20:11" time="0.871" tests="9">
+    <testcase classname="Products Routes GET /api/products should return paginated products list" name="Products Routes GET /api/products should return paginated products list" time="0.025">
+    </testcase>
+    <testcase classname="Products Routes GET /api/products should filter by category" name="Products Routes GET /api/products should filter by category" time="0.004">
+    </testcase>
+    <testcase classname="Products Routes GET /api/products should filter by search term" name="Products Routes GET /api/products should filter by search term" time="0.003">
+    </testcase>
+    <testcase classname="Products Routes GET /api/products should filter by price range" name="Products Routes GET /api/products should filter by price range" time="0.004">
+    </testcase>
+    <testcase classname="Products Routes GET /api/products should return pagination metadata" name="Products Routes GET /api/products should return pagination metadata" time="0.004">
+    </testcase>
+    <testcase classname="Products Routes GET /api/products/categories should return list of categories" name="Products Routes GET /api/products/categories should return list of categories" time="0.002">
+    </testcase>
+    <testcase classname="Products Routes GET /api/products/:id should return a product by valid ID" name="Products Routes GET /api/products/:id should return a product by valid ID" time="0.005">
+    </testcase>
+    <testcase classname="Products Routes GET /api/products/:id should return 400 for invalid UUID format" name="Products Routes GET /api/products/:id should return 400 for invalid UUID format" time="0.003">
+    </testcase>
+    <testcase classname="Products Routes GET /api/products/:id should return 404 for non-existent product" name="Products Routes GET /api/products/:id should return 404 for non-existent product" time="0.002">
+    </testcase>
+  </testsuite>
+  <testsuite name="Health Check Endpoints" errors="0" failures="0" skipped="0" timestamp="2026-06-19T06:20:12" time="0.146" tests="6">
+    <testcase classname="Health Check Endpoints GET /health → 200 with healthy status" name="Health Check Endpoints GET /health → 200 with healthy status" time="0.003">
+    </testcase>
+    <testcase classname="Health Check Endpoints GET /api/health → 200 with healthy status" name="Health Check Endpoints GET /api/health → 200 with healthy status" time="0.003">
+    </testcase>
+    <testcase classname="Health Check Endpoints GET /api → 200 with API info" name="Health Check Endpoints GET /api → 200 with API info" time="0.002">
+    </testcase>
+    <testcase classname="Health Check Endpoints GET /nonexistent-route → 404" name="Health Check Endpoints GET /nonexistent-route → 404" time="0.013">
+    </testcase>
+    <testcase classname="Security Headers should include X-Content-Type-Options header" name="Security Headers should include X-Content-Type-Options header" time="0.002">
+    </testcase>
+    <testcase classname="Security Headers should include X-Frame-Options header" name="Security Headers should include X-Frame-Options header" time="0.002">
+    </testcase>
+  </testsuite>
+  <testsuite name="Authentication Routes" errors="0" failures="0" skipped="0" timestamp="2026-06-19T06:20:12" time="1.031" tests="11">
+    <testcase classname="Authentication Routes POST /api/auth/register should register a new user successfully" name="Authentication Routes POST /api/auth/register should register a new user successfully" time="0.239">
+    </testcase>
+    <testcase classname="Authentication Routes POST /api/auth/register should reject duplicate email registration" name="Authentication Routes POST /api/auth/register should reject duplicate email registration" time="0.003">
+    </testcase>
+    <testcase classname="Authentication Routes POST /api/auth/register should reject weak password" name="Authentication Routes POST /api/auth/register should reject weak password" time="0.003">
+    </testcase>
+    <testcase classname="Authentication Routes POST /api/auth/register should reject invalid email" name="Authentication Routes POST /api/auth/register should reject invalid email" time="0.002">
+    </testcase>
+    <testcase classname="Authentication Routes POST /api/auth/register should not expose password in response" name="Authentication Routes POST /api/auth/register should not expose password in response" time="0.21">
+    </testcase>
+    <testcase classname="Authentication Routes POST /api/auth/login should login with valid credentials" name="Authentication Routes POST /api/auth/login should login with valid credentials" time="0.211">
+    </testcase>
+    <testcase classname="Authentication Routes POST /api/auth/login should reject invalid password" name="Authentication Routes POST /api/auth/login should reject invalid password" time="0.209">
+    </testcase>
+    <testcase classname="Authentication Routes POST /api/auth/login should reject non-existent user" name="Authentication Routes POST /api/auth/login should reject non-existent user" time="0.003">
+    </testcase>
+    <testcase classname="Authentication Routes GET /api/auth/me should return user profile with valid token" name="Authentication Routes GET /api/auth/me should return user profile with valid token" time="0.004">
+    </testcase>
+    <testcase classname="Authentication Routes GET /api/auth/me should reject request without token" name="Authentication Routes GET /api/auth/me should reject request without token" time="0.002">
+    </testcase>
+    <testcase classname="Authentication Routes GET /api/auth/me should reject request with invalid token" name="Authentication Routes GET /api/auth/me should reject request with invalid token" time="0.005">
+    </testcase>
+  </testsuite>
+</testsuites>

@@ -1,8 +1,7 @@
 'use strict';
 
 const request = require('supertest');
-const app = require('../src/server');
-const store = require('../src/models/store');
+const app = require('../src/app');
 
 describe('Products Routes', () => {
   describe('GET /api/products', () => {
