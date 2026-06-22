@@ -2,8 +2,8 @@ FROM python:3.9-slim
 
 WORKDIR /app
 
-# Copy the specific files from the nested directory
-# We use the full path relative to the root of the repository
+# Copy files relative to the Dockerfile location
+# Remove the leading slash so Docker looks in the current build context
 COPY WEEK-01/DAY-01/requirements.txt .
 COPY WEEK-01/DAY-01/app.py .
 
