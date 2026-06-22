@@ -2,11 +2,12 @@ FROM python:3.9-slim
 
 WORKDIR /app
 
-# Copy everything from your DAY-01 folder into the /app folder in the container
-COPY WEEK-01/DAY-01/ /app/
+# Copy the entire contents of the subfolder into the container
+# Use a forward slash / even on Windows, as Docker environments are Linux-based
+COPY WEEK-01/DAY-01/ .
 
 # Install the dependencies
 RUN pip install -r requirements.txt
 
-# The application is already copied, just run it
+# Run the application
 CMD ["python", "app.py"]
