@@ -92,10 +92,8 @@ kibana:
 
   depends_on:
     - elasticsearch
-
     
-
-    networks:
+  networks:
       - ecommerce-net    
 
 
