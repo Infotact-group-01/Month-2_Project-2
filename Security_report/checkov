@@ -1,0 +1,4 @@
+checkov \
+  -d infrastructure \
+  -o json \
+  > security-reports/checkov-results.json
