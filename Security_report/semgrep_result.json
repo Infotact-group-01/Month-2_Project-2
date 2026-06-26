@@ -1,0 +1,4 @@
+semgrep scan \
+  --config auto \
+  --json \
+  -o security-reports/semgrep-results.json
