@@ -267,3 +267,28 @@ jobs:
       - name: Stop application
         if: always()
         run: docker rm -f ecommerce-api || true
+
+name: Run Semgrep
+
+  run: |
+      mkdir -p security-reports
+
+      semgrep scan \
+      --config auto \
+      --json \
+      -o security-reports/semgrep_results.json
+
+name: Run Checkov
+
+  run: |
+
+      checkov \
+      -d infrastructure \
+      -o json \
+      > security-reports/checkov.json
+
+name: Send Security Email
+
+  run: |
+
+      node app/services/alertService.js
