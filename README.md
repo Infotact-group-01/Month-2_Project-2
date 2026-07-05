@@ -173,17 +173,3 @@ POST /api/orders
 ```
 
 
-
-# Month-2_Project-2: Enterprise DevSecOps Pipeline
-
-## Overview
-This project demonstrates an automated CI/CD pipeline with integrated security gates to ensure cloud-native compliance and vulnerability management.
-
-## Project Roadmap
-- **Week 1:** Containerization and SAST (SonarQube)
-- **Week 2:** Dependency and Container Scanning (Trivy)
-- **Week 3:** Infrastructure as Code (IaC) Scanning (Checkov)
-- **Week 4:** DAST Integration (OWASP ZAP)
-
-## Status
-- [x] Week 1, Day 1: Initial App and Docker setup
