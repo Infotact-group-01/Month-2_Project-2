@@ -218,7 +218,7 @@ jobs:
             --name ecommerce-api \
             --network zap-net \
             -e NODE_ENV=production \
-            -e JWT_SECRET=ci-dast-secret-change-before-production-12345 \
+            -e JWT_SECRET=${{ secrets.CI_DAST_JWT_SECRET }} \
             -e CORS_ORIGIN=http://localhost:3000 \
             $IMAGE_NAME:dast
 
@@ -268,27 +268,35 @@ jobs:
         if: always()
         run: docker rm -f ecommerce-api || true
 
-name: Run Semgrep
+  notify-on-failure:
+    name: Send Security Alert Email
+    runs-on: ubuntu-latest
+    needs:
+      - app-quality
+      - sast
+      - iac-security
+      - container-security
+      - dast
+    if: failure()
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
 
-  run: |
-      mkdir -p security-reports
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
 
-      semgrep scan \
-      --config auto \
-      --json \
-      -o security-reports/semgrep_results.json
+      - name: Install alert service dependencies
+        working-directory: app
+        run: npm ci --omit=dev
 
-name: Run Checkov
-
-  run: |
-
-      checkov \
-      -d infrastructure \
-      -o json \
-      > security-reports/checkov.json
-
-name: Send Security Email
-
-  run: |
-
-      node app/services/alertService.js
+      - name: Send failure alert email
+        working-directory: app
+        env:
+          SMTP_HOST: ${{ secrets.SMTP_HOST }}
+          SMTP_USER: ${{ secrets.SMTP_USER }}
+          SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+          ALERT_EMAIL_RECIPIENTS: ${{ secrets.ALERT_EMAIL_RECIPIENTS }}
+          PIPELINE_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: node services/alertService.js
